@@ -1,13 +1,22 @@
 import json
 import logging
-from src import colours
+import boto3
+from PIL import Image
+
+from src.colours import colours
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
 def new_image(event, context):
-    # Accept a new image being created and log the information to file.
+    """Accept a new image being created and log the information to file.
+    :param event:
+    :param context:
+    :return:
+    """
+    s3_client = boto3.client("s3")
+
     key = event["Records"][0]["s3"]["object"]["key"]
     bucket = event["Records"][0]["s3"]["bucket"]["name"]
     logger.info("Found new image in bucket '{}' with key '{}'.".format(
@@ -15,10 +24,24 @@ def new_image(event, context):
         key
     ))
 
+    # We have to open the image provided.
+    img = Image.open(s3_client.get_object(
+        Key=key,
+        Bucket=bucket,
+
+    )['Body'])
+
+    # We then get some data about it.
+    dimensions = colours.get_dimensions(img)
+
     body = {
         "key": key,
-        "bucket": bucket
+        "bucket": bucket,
+        "height": dimensions["height"],
+        "width": dimensions["width"]
     }
+
+    logger.info(body)
 
     response = {
         "statusCode": 200,
