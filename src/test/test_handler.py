@@ -3,6 +3,7 @@ import json
 
 from . import example_messages
 import src.handler.handler as handler
+import src.handler.util as util
 
 
 class TestHandler(unittest.TestCase):
@@ -25,5 +26,41 @@ class TestHandler(unittest.TestCase):
             body["bucket"],
             "sourcebucket",
             "Bucket did not match as expected."
+        )
+
+
+class TestUtil(unittest.TestCase):
+    """
+    Tests associated with the util module.
+    """
+
+    def test_s3uri_returned(self):
+        """
+        If we return a standard bucket and key, we should get a usable s3 URI in return.
+        :return:
+        """
+        key = "hello/mate"
+        bucket = "databucket"
+        s3_uri = "s3://databucket/hello/mate"
+
+        self.assertEqual(
+            util.generate_sourceref(key, bucket),
+            s3_uri,
+            "Returned s3 URI did not match as expected."
+        )
+
+    def test_s3_uri_returned_with_leading_slash(self):
+        """
+        If we return a standard bucket but the key has a leading slash, we should get a usable s3 URI in return.
+        :return:
+        """
+        key = "/hello/mate"
+        bucket = "databucket"
+        s3_uri = "s3://databucket/hello/mate"
+
+        self.assertEqual(
+            util.generate_sourceref(key, bucket),
+            s3_uri,
+            "Returned s3 URI did not match as expected."
         )
 

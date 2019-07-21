@@ -11,16 +11,25 @@ provider:
   stage: dev
   region: ap-southeast-2
   environment:
-    HELLO: WORLD
+    DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
   iamRoleStatements:
     - Effect: Allow
       Action:
         - s3:*
       Resource: "*"  # This should be limited to just our bucket.
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
 
 
 functions:
-  hello:
+  new_image:
     handler: src/handler/handler.new_image
     events:
       - s3:
@@ -28,6 +37,25 @@ functions:
           event: s3:ObjectCreated:*
           rules:
             - suffix: .jpg
+
+resources:
+  Resources:
+    TodosDynamoDbTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: sourceref
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: sourceref
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}
 
 plugins:
   - serverless-python-requirements

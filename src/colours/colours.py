@@ -1,5 +1,3 @@
-import PIL
-
 def get_dimensions(img):
     """
     Return the dimensions of a PIL image.
