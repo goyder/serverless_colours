@@ -1,6 +1,16 @@
 # colours
 
-This is a `serverless` stack loosely based around reading colours of images.
+This is a `Serverless` stack loosely based around reading colours of images.
+
+## True intent 
+
+The real intent of this project was to explore a number of topics related to Serverless, namely:
+
+* Python project structure in Serverless
+    * And in particular - unit testing
+* Environment management (which turned out to be surprisingly straight forward)
+* DynamoDB integration
+* Local stack deployment
 
 ## Further reading for myself
 
