@@ -31,12 +31,6 @@ provider:
 functions:
   new_image:
     handler: src/handler/handler.new_image
-    events:
-      - s3:
-          bucket: ${self:custom.bucket}
-          event: s3:ObjectCreated:*
-          rules:
-            - suffix: .jpg
 
 resources:
   Resources:
@@ -59,3 +53,4 @@ resources:
 
 plugins:
   - serverless-python-requirements
+  - serverless-step-functions
