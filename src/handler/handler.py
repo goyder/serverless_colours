@@ -18,11 +18,9 @@ def new_image(event, context):
     :return:
     """
     s3_client = boto3.client("s3")
-    ddb_resource = boto3.resource("dynamodb")
-    table = ddb_resource.Table(os.environ["DYNAMODB_TABLE"])
 
-    key = event["Records"][0]["s3"]["object"]["key"]
-    bucket = event["Records"][0]["s3"]["bucket"]["name"]
+    s3uri = event["s3uri"]
+    bucket, key = util.get_bucket_and_key(s3uri)
     logger.info("Found new image in bucket '{}' with key '{}'.".format(
         bucket,
         key
@@ -45,17 +43,6 @@ def new_image(event, context):
         "height": dimensions["height"],
         "width": dimensions["width"]
     }
-    logger.info("Logging to dynamodb for image '{}'.".format(s3uri))
-
-    table.put_item(
-        Item={
-            "sourceref": body["s3uri"],
-            "key": key,
-            "bucket": bucket,
-            "height": dimensions["height"],
-            "width": dimensions["width"]
-        }
-    )
 
     logger.info(body)
     response = {

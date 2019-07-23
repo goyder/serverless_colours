@@ -1,6 +1,7 @@
 """
 Generate utility functions associated with the Lambdas.
 """
+from urllib.parse import urlparse
 
 
 def generate_sourceref(key, bucket):
@@ -14,3 +15,14 @@ def generate_sourceref(key, bucket):
         key = key[1:]
 
     return "s3://" + bucket + "/" + key
+
+
+def get_bucket_and_key(s3uri):
+    """
+    Extract a key and a bucket from an s3 URI.
+    :param s3uri:
+    :return: Tuple of (bucket, key)
+    """
+    parsed_url = urlparse(s3uri)
+    return parsed_url.netloc, parsed_url.path[1:]
+

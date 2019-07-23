@@ -1,4 +1,4 @@
-example_message = {
+s3_object_created = {
   "Records":[
     {
       "eventVersion":"2.0",
@@ -35,4 +35,8 @@ example_message = {
       }
     }
   ]
+}
+
+s3_object_location = {
+  "s3uri": "s3://sourcebucket/HappyFace.jpg"
 }

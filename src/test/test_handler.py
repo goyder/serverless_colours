@@ -13,7 +13,7 @@ class TestHandler(unittest.TestCase):
         Pass in a typical s3 event and get the key and bucket back.
         :return:
         """
-        response = handler.new_image(example_messages.example_message, "")
+        response = handler.new_image(example_messages.s3_object_location, "")
         body = json.loads(response["body"])
 
         self.assertEqual(
@@ -62,5 +62,25 @@ class TestUtil(unittest.TestCase):
             util.generate_sourceref(key, bucket),
             s3_uri,
             "Returned s3 URI did not match as expected."
+        )
+
+    def test_get_key_and_bucket_from_s3_uri(self):
+        """
+        If we pass in an s3 URI, get the key and bucket back.
+        :return:
+        """
+        s3uri = "s3://databucket/hello/mate"
+        bucket, key = util.get_bucket_and_key(s3uri)
+
+        self.assertEqual(
+            "databucket",
+            bucket,
+            "Bucket did not match as expected."
+        )
+
+        self.assertEqual(
+            "hello/mate",
+            key,
+            "Key did not match as expected."
         )
 
