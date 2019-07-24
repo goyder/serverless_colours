@@ -27,10 +27,69 @@ provider:
         - dynamodb:DeleteItem
       Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
 
-
 functions:
-  new_image:
+  new-image:
     handler: src/handler/handler.new_image
+  list-images:
+    handler: src/handler/handler.list_images
+
+stepFunctions:
+  stateMachines:
+    image-analysis:
+      definition:
+        Comment: 'Step function to find all images in an s3 bucket, analyse them, and store
+          them. Input should be {''bucket'': bucket}.'
+        StartAt: GetImageListFromBucket
+        States:
+          GetImageListFromBucket:
+            Comment: 'Returns {''s3uris'': [''s3://bucket/key1'', ''s3://bucket/key2'', ''DONE''] }'
+            Type: Task
+            Resource:
+              Fn::GetAtt: [ListDashimagesLambdaFunction, Arn]
+            Next: ForLoopCondition
+          ForLoopCondition:
+            Type: Choice
+            Choices:
+              - Not:
+                  Variable: "$.s3uris[0]"
+                  StringEquals: DONE
+                Next: AnalyseImage
+            Default: Succeed
+          AnalyseImage:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [NewDashimageLambdaFunction, Arn]
+            Parameters:
+              s3uri.$: "$.s3uris[0]"
+            ResultPath: "$.DynamoDB"
+            Next: LogImageAnalysisToDDB
+          LogImageAnalysisToDDB:
+            Type: Task
+            Resource: arn:aws:states:::dynamodb:putItem
+            Parameters:
+              TableName: ${self:provider.environment.DYNAMODB_TABLE}
+              Item:
+                sourceref:
+                  S.$: "$.DynamoDB.body.s3uri"
+                key:
+                  S.$: "$.DynamoDB.body.key"
+                bucket:
+                  S.$: "$.DynamoDB.body.bucket"
+                height:
+                  N.$: "$.DynamoDB.body.height"
+                width:
+                  N.$: "$.DynamoDB.body.width"
+            ResultPath: "$.Result"
+            Next: PopElementFromList
+          PopElementFromList:
+            Type: Pass
+            Parameters:
+              s3uris.$: "$.s3uris[1:]"
+            Next: ForLoopCondition
+          Succeed:
+            Type: Succeed
+
+
 
 resources:
   Resources:
@@ -53,4 +112,6 @@ resources:
 
 plugins:
   - serverless-python-requirements
+  - serverless-offline
   - serverless-step-functions
+  - serverless-step-functions-offline

@@ -37,6 +37,10 @@ s3_object_created = {
   ]
 }
 
+bucket_location = {
+  "bucket": "sourcebucket"
+}
+
 s3_object_location = {
   "s3uri": "s3://sourcebucket/HappyFace.jpg"
 }
